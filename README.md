@@ -64,8 +64,15 @@ dotnet-CycloneDX <path> -o <OUTPUT_DIRECTORY>
 #### Execution via Docker
 
 ```bash
-docker run --rm cyclonedx/cyclonedx-dotnet [OPTIONS] <path>
+docker run --rm --user $(id -u):$(id -g) \
+  -v $(pwd):/work \
+  cyclonedx/cyclonedx-dotnet [OPTIONS] /work/<path>
 ```
+
+> **Note:** The `--user $(id -u):$(id -g)` flag runs the container as your host user,
+> ensuring `dotnet restore` can write to the mounted volume and output files are owned by
+> you rather than root. A future major release will make non-root the default. See
+> [docs/adr-001-rootless-container.md](docs/adr-001-rootless-container.md) for background.
 
 #### Options
 
