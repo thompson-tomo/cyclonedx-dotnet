@@ -173,6 +173,11 @@ namespace CycloneDX.E2ETests.Infrastructure
                 sb.Append($" --configuration {options.Configuration}");
             }
 
+            if (options.DisablePackageRestore)
+            {
+                sb.Append(" --disable-package-restore");
+            }
+
             if (options.AdditionalArgs != null)
             {
                 sb.Append($" {options.AdditionalArgs}");
@@ -202,6 +207,13 @@ namespace CycloneDX.E2ETests.Infrastructure
         public string ExcludeFilter { get; set; }
         public string Framework { get; set; }
         public string Configuration { get; set; }
+        /// <summary>
+        /// When <see langword="true"/>, passes <c>--disable-package-restore</c> to the tool.
+        /// Use this together with a solution that has already been restored (e.g. via
+        /// <see cref="Builders.SolutionBuilder.BuildAsync"/> with a <c>restoreConfiguration</c>
+        /// argument) to simulate the recommended restore-first workflow.
+        /// </summary>
+        public bool DisablePackageRestore { get; set; }
         /// <summary>Appended verbatim to the command line for exotic scenarios.</summary>
         public string AdditionalArgs { get; set; }
     }

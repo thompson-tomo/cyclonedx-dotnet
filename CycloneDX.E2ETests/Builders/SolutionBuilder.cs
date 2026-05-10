@@ -140,7 +140,25 @@ namespace CycloneDX.E2ETests.Builders
         /// Writes all project files to a new temp directory, restores packages,
         /// and returns a <see cref="BuiltSolution"/> ready for tool invocation.
         /// </summary>
-        public async Task<BuiltSolution> BuildAsync(string nugetFeedUrl = null)
+        /// <param name="nugetFeedUrl">URL of the NuGet feed to restore from.</param>
+        /// <param name="restoreConfiguration">
+        /// Optional MSBuild <c>Configuration</c> value passed to <c>dotnet restore</c>
+        /// (e.g. <c>"Release"</c>).  When <see langword="null"/> (the default) the
+        /// toolchain default (<c>Debug</c>) is used.  Pass a non-null value here to
+        /// simulate the recommended restore-first workflow where the consumer restores
+        /// with the correct configuration before running CycloneDX with
+        /// <see cref="ToolRunOptions.DisablePackageRestore"/>.
+        /// </param>
+        /// <param name="extraRestoreProperties">
+        /// Additional MSBuild properties to pass to <c>dotnet restore</c> as
+        /// <c>-p:Key=Value</c> pairs (e.g. <c>new[] { "UITestsEnabled=false" }</c>).
+        /// Use this to control conditions that depend on custom properties beyond
+        /// <c>$(Configuration)</c>.
+        /// </param>
+        public async Task<BuiltSolution> BuildAsync(
+            string nugetFeedUrl = null,
+            string restoreConfiguration = null,
+            string[] extraRestoreProperties = null)
         {
             var feedUrl = nugetFeedUrl ?? _nugetFeedUrl
                 ?? throw new InvalidOperationException("A NuGet feed URL must be supplied.");
@@ -160,10 +178,17 @@ namespace CycloneDX.E2ETests.Builders
                 // Write solution file if there is more than one project or we always want a .sln
                 var slnPath = WriteSolution(dir.Path);
 
-                // dotnet restore
+                // dotnet restore — optionally pass MSBuild properties
+                var propArgs = new System.Text.StringBuilder();
+                if (restoreConfiguration != null)
+                    propArgs.Append($" -p:Configuration={restoreConfiguration}");
+                if (extraRestoreProperties != null)
+                    foreach (var prop in extraRestoreProperties)
+                        propArgs.Append($" -p:{prop}");
+
                 var (exitCode, stdOut, stdErr) = await ToolFixture.RunProcessAsync(
                     "dotnet",
-                    $"restore \"{slnPath}\" --no-cache /nodeReuse:false",
+                    $"restore \"{slnPath}\" --no-cache /nodeReuse:false{propArgs}",
                     workingDir: dir.Path
                 ).ConfigureAwait(false);
 
