@@ -224,6 +224,7 @@ namespace CycloneDX.Services
         {
             using (SHA512 sha = SHA512.Create())
             {
+                stream.Position = 0;
                 return sha.ComputeHash(stream);
             }
         }

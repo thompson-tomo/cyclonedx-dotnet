@@ -276,6 +276,8 @@ namespace CycloneDX.Tests
 
             Assert.Equal(packageName, component.Name);
             Assert.Equal(packageVersion, component.Version);
+            Assert.Equal("83731B662EAF05379A23F8446EF47BBC111349DD4358B7BD8B51383FE9CF637E2FE62F78CEA52A0D7BDD582DC6FBBB5837D4A7B1D53DCF37A0AE7473E21EE7B1",
+                component.Hashes.Single().Content);
         }
 
         [Fact]
